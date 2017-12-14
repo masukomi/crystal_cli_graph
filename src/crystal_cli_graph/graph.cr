@@ -10,7 +10,7 @@ module CrystalCliGraph
       @fit_min = options.fetch(:fit_min, false).as(Bool)
       @max_height = options.fetch(:max_height, 15).as(Int32)
       @x_label = options.fetch(:x_label, nil).as(String?)
-      @y_label = options.fetch(:y_label, nil).as(String?)
+      @y_axis_label = options.fetch(:y_axis_label, nil).as(String?)
       @max_width = options.fetch(:max_width, @data.size).as(Int32)
       @column_labels = options.fetch(:column_labels, Array(String).new).as(Array(String))
       # max_width WILL be exceeded if there are more data elements than it
@@ -18,7 +18,7 @@ module CrystalCliGraph
       # [0, 1, 15, 20, 2]
       # and convert it into height bars.
       @columns = generate_columns_from_data(@data, @fit_min, @max_height,
-                                            @y_label, @max_width, @column_labels)
+                                            @y_axis_label, @max_width, @column_labels)
     end
     def generate
       t = Table.new(@columns)
@@ -36,11 +36,8 @@ module CrystalCliGraph
         return 0
       elsif datums > LABEL_CHARS.size
         min_padding = datums / LABEL_CHARS.size # because we'll go a-z, aa-zz, aaa-zzz, etc as needed
-        # STDERR.puts("XXX min_padding: #{min_padding}")
         normal_padding = (max_width / datums) - 1
-        # STDERR.puts("XXX normal_padding: #{normal_padding}")
         normal_padding = 0 if normal_padding < 0
-        # STDERR.puts("XXX normal_padding: #{normal_padding}")
         min_padding > normal_padding ? min_padding : normal_padding
       else
         padding = (max_width / datums) - 1
@@ -50,25 +47,26 @@ module CrystalCliGraph
     
     def generate_columns_from_data(data : Array(Int32), fit_min : Bool,
                                         max_height : Int32,
-                                        y_label : String?,
+                                        y_axis_label : String?,
                                         max_width : Int32,
                                         column_labels : Array(String)) : Array(Column)
+
       label_columns = column_labels.size > 0
       max_label_chars = (data.size / LABEL_CHARS.size) + 1
 
       # we have max_height + 1 possible different bars (+1 for zero height)
       # each bar being able to have 1 step towards max_height
 
-      y_label_columns = y_label.nil? ? Array(Column).new : generate_y_label_columns(max_height, y_label.to_s)
+      y_axis_label_columns = y_axis_label.nil? ? Array(Column).new : generate_y_axis_label_columns(max_height, y_axis_label.to_s, label_columns)
       pcc = get_padding_columns_count(data, max_width, label_columns)
-      total_cols = data.size + (y_label.nil? ? 0 : y_label_columns.size)
+      total_cols = data.size + (y_axis_label.nil? ? 0 : y_axis_label_columns.size)
       
       columns = Array(Column).new(total_cols)
-      if !y_label.nil?
-        max_height = y_label_columns.first.size
-        columns += y_label_columns
+      if !y_axis_label.nil?
+        max_height = y_axis_label_columns.first.size
+        max_height -= 1 if label_columns # ^^ includes this extra row
+        columns += y_axis_label_columns
       end
-
 
       min_range = fit_min ? data.min : 0
       bar_range = data.max - min_range
@@ -118,22 +116,27 @@ module CrystalCliGraph
       label
     end
     
-    private def generate_y_label_columns(max_height : Int32, y_label : String) : Array(Column)
+    private def generate_y_axis_label_columns(max_height : Int32, y_axis_label : String, label_columns : Bool) : Array(Column)
       col_data = Array(String|Nil).new()
-      if y_label.size >= max_height
-        max_height = y_label.size
+      if y_axis_label.size >= max_height
+        max_height = y_axis_label.size
         # bar height is calculated based on bar
         # so it's safe to change this now.
-        col_data += y_label.split("")
+        col_data += y_axis_label.split("")
       else
-        padding = (max_height - y_label.size)
-        col_data += (" " * padding).split("")
-        col_data += y_label.split("")
+        row_padding_size = (max_height - y_axis_label.size)
+        row_padding = (" " * row_padding_size).split("")
+        col_data += row_padding
+        col_data += y_axis_label.split("")
       end
-      y_label_column = Column.new(col_data)
-      y_axis_column_data = Array(String|Nil).new + ("|" *
-                                                  y_label_column.size).split("")
-      [y_label_column, Column.new(y_axis_column_data)]
+      col_data.push(" ") if label_columns
+
+      y_axis_label_column = Column.new(col_data)
+      y_axis_height = label_columns ? (y_axis_label_column.size - 1) : y_axis_label_column.size
+      y_axis_column_data = Array(String|Nil).new + ("|" * y_axis_height).split("")
+      y_axis_column_data.push(" ") if label_columns
+      y_axis_column = Column.new(y_axis_column_data)
+      [y_axis_label_column, y_axis_column]
     end
   end
 end
