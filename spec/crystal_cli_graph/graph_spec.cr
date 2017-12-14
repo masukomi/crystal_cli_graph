@@ -2,10 +2,11 @@ require "../spec_helper"
 
 def default_options() : Hash(Symbol, Bool|Int32|String?|Array(String))
   options = Hash(Symbol, Bool|Int32|String?|Array(String)).new()
-  #fit_min
-  #max_height
-  #x_label
-  #y_label
+  # fit_min
+  # max_height
+  # x_label
+  # y_label
+  # column_labels
 end
 def default_data(size : Int32 = 4) : Array(Int32)
   data = Array(Int32).new(size)
@@ -52,6 +53,36 @@ describe CrystalCliGraph::Graph do
                                            Array(String).new(0)) # column_labels
     columns.size.should(eq(4)) # no padding to the right of last one.
     columns.map{|c|c.width}.should(eq([4,4,4,1]))
+  end
+
+
+  # it "should generate label for index < LABEL_CHARS.size" do 
+  #   # this should be a private method but it's broke so i'm writing a test
+  #   g = CrystalCliGraph::Graph.new(default_data, default_options)
+  #   label = g.generate_label_for_index(0, 1, CrystalCliGraph::Graph::LABEL_CHARS)
+  #   label.should(eq("a"))
+  # end
+  # it "should generate label for index > LABEL_CHARS.size" do
+  #   g = CrystalCliGraph::Graph.new(default_data, default_options)
+  #   label = g.generate_label_for_index(52, 2, CrystalCliGraph::Graph::LABEL_CHARS)
+  #   label.should(eq("aa")) # aa for 52 because it's counting from zero not 1
+  #
+  # end
+  it "should pad columns to support labels " do
+    opts = default_options
+    labels = default_labels(53)
+    opts[:column_labels] = labels
+    data = default_data(53)
+    g = CrystalCliGraph::Graph.new(data, opts)
+    columns = g.generate_columns_from_data(data, 
+                                           false, # fit_min
+                                           100, # max_height
+                                           nil, # y_label
+                                           16,  # max_width
+                                           labels) # column_labels
+    columns.size.should(eq(53)) # no padding to the right of last one.
+    columns.all?{|x|x.width == 2}.should(eq(true))
+
   end
 
   it "should generate a graph with no label" do

@@ -54,7 +54,7 @@ module CrystalCliGraph
                                         max_width : Int32,
                                         column_labels : Array(String)) : Array(Column)
       label_columns = column_labels.size > 0
-      max_label_chars = data.size / LABEL_CHARS.size
+      max_label_chars = (data.size / LABEL_CHARS.size) + 1
 
       # we have max_height + 1 possible different bars (+1 for zero height)
       # each bar being able to have 1 step towards max_height
@@ -87,16 +87,17 @@ module CrystalCliGraph
           ("|" * ( bar_height > 0 ? (bar_height - 1) : 0 ))).split("")
         # find a more efficient way to do that^^
         if label_columns
-          column_data.push generate_label_for_index(idx, max_label_chars,
+          label_for_idx = generate_label_for_index(idx, max_label_chars,
                                                     LABEL_CHARS)
+          column_data.push label_for_idx
         else
 
         end
-        if (idx < data.size - 1 && pcc > 0)
+        if (idx < (data.size - 1) && pcc > 0)
           last = column_data.last
-          ls = last.to_s.size
-          if ls < (pcc + 1)
-            more_pad = (pcc+1) - ls
+          last_size = last.to_s.size
+          if last_size < (pcc + 1)
+            more_pad = (pcc+1) - last_size
             column_data[-1] = column_data.last.to_s + (" " * more_pad)
           end
         end
@@ -107,7 +108,7 @@ module CrystalCliGraph
 
     private def generate_label_for_index(idx : Int32, max_label_chars : Int32, 
                                          label_chars : Array(String)) : String
-      multiplier = (idx / label_chars.size)
+      multiplier = (idx / label_chars.size) + 1
       lc_idx = idx - (multiplier * label_chars.size)
       label = (label_chars[lc_idx] * multiplier)
       if label.size < max_label_chars
