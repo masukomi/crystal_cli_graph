@@ -23,6 +23,18 @@ def default_labels(count : Int32) : Array(String)
   labels
 end
 describe CrystalCliGraph::Graph do
+  it "should show me what it looks like with labels" do
+    opts = default_options
+    labels = default_labels(54)
+    opts[:column_labels] = labels
+    # opts[:y_label] = "Y Axis Label"
+    # opts[:x_label] = "X Axis label"
+    data = default_data(54)
+    g = CrystalCliGraph::Graph.new(data, opts)
+    output = g.generate
+    STDERR.puts("\nEXAMPLE GRAPH\n#{output}\n")
+    output.nil?.should(be_false())
+  end
   it "should be initializable with an array of ints" do
     g = CrystalCliGraph::Graph.new(default_data, default_options)
     g.should(be_a(CrystalCliGraph::Graph))
@@ -84,6 +96,7 @@ describe CrystalCliGraph::Graph do
     columns.all?{|x|x.width == 2}.should(eq(true))
 
   end
+
 
   it "should generate a graph with no label" do
     g = CrystalCliGraph::Graph.new(default_data, default_options)
