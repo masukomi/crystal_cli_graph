@@ -3,10 +3,10 @@ require "crystal_fmt"
 module CrystalCliGraph
   class Graph
     getter :data
-    BAR_TOPPER="o"
+    BAR_TOPPER = "o"
     @columns : Array(Column)
-    
-    def initialize(@data : Array(Int32), options : Hash(Symbol, Bool|Int32|String?|Array(String)))
+
+    def initialize(@data : Array(Int32), options : Hash(Symbol, Bool | Int32 | String? | Array(String)))
       @fit_min = options.fetch(:fit_min, false).as(Bool)
       @max_height = options.fetch(:max_height, 15).as(Int32)
       @x_label = options.fetch(:x_label, nil).as(String?)
@@ -14,30 +14,31 @@ module CrystalCliGraph
       @max_width = options.fetch(:max_width, @data.size).as(Int32)
       @column_labels = options.fetch(:column_labels, Array(String).new).as(Array(String))
       # max_width WILL be exceeded if there are more data elements than it
-      # we need to take 
+      # we need to take
       # [0, 1, 15, 20, 2]
       # and convert it into height bars.
       @columns = generate_columns_from_data(@data, @fit_min, @max_height,
-                                            @y_axis_label, @max_width, @column_labels)
+        @y_axis_label, @max_width, @column_labels)
     end
+
     def generate
       t = Table.new(@columns)
-      options = Hash(Symbol,String|Bool).new
+      options = Hash(Symbol, String | Bool).new
       options[:left_border] = ""
       options[:right_border] = ""
       options[:divider] = ""
       options[:show_header] = false
-      response = String.build do | str |
+      response = String.build do |str|
         str << t.format(options)
-        if ! @column_labels.empty? 
+        if !@column_labels.empty?
           str << "\n"
           l = Legend.new(@data, @column_labels, CrystalCliGraph::KEY_CHARS,
-                         t.width)
-          str << l.generate()
+            t.width)
+          str << l.generate
         end
       end
     end
-    
+
     def get_padding_columns_count(data : Array(Int32), max_width : Int32, labels : Bool) : Int32
       datums = data.size
       if datums >= max_width && datums <= CrystalCliGraph::KEY_CHARS.size
@@ -52,14 +53,13 @@ module CrystalCliGraph
         return (padding > 0 ? padding : 0)
       end
     end
-    
-    #TODO REFACTOR ME! OMG SUCH COMPLEXITY!
-    def generate_columns_from_data(data : Array(Int32), fit_min : Bool,
-                                        max_height : Int32,
-                                        y_axis_label : String?,
-                                        max_width : Int32,
-                                        column_labels : Array(String)) : Array(Column)
 
+    # TODO REFACTOR ME! OMG SUCH COMPLEXITY!
+    def generate_columns_from_data(data : Array(Int32), fit_min : Bool,
+                                   max_height : Int32,
+                                   y_axis_label : String?,
+                                   max_width : Int32,
+                                   column_labels : Array(String)) : Array(Column)
       label_columns = column_labels.size > 0
       max_key_chars = CrystalCliGraph.calculate_max_key_chars(data, CrystalCliGraph::KEY_CHARS)
 
@@ -69,7 +69,7 @@ module CrystalCliGraph
       y_axis_label_columns = y_axis_label.nil? ? Array(Column).new : generate_y_axis_label_columns(max_height, y_axis_label.to_s, label_columns)
       pcc = get_padding_columns_count(data, max_width, label_columns)
       total_cols = data.size + (y_axis_label.nil? ? 0 : y_axis_label_columns.size)
-      
+
       columns = Array(Column).new(total_cols)
       if !y_axis_label.nil?
         max_height = y_axis_label_columns.first.size
@@ -79,23 +79,23 @@ module CrystalCliGraph
 
       min_range = fit_min ? data.min : 0
       bar_range = data.max - min_range
-      #TODO: rename "bar" var name
+      # TODO: rename "bar" var name
       bar = bar_range.to_f / (max_height - 1).to_f
       bar = 1 if bar < 1
-      
+
       data.each_with_index do |int, idx|
         bar_height = ((int - min_range) / bar).to_i
         padding_needed = max_height - bar_height # possibly higher based on label
         if bar_height == 0 && padding_needed != 0
-          padding_needed -=1
+          padding_needed -= 1
         end
         column_data = generate_column_data(padding_needed, bar_height,
-                                           label_columns, idx, max_key_chars)
+          label_columns, idx, max_key_chars)
         if (idx < (data.size - 1) && pcc > 0)
           last = column_data.last
           last_size = last.to_s.size
           if last_size < (pcc + 1)
-            more_pad = (pcc+1) - last_size
+            more_pad = (pcc + 1) - last_size
             column_data[-1] = column_data.last.to_s + (" " * more_pad)
           end
         end
@@ -105,27 +105,26 @@ module CrystalCliGraph
     end
 
     private def generate_column_data(padding_needed : Int32,
-                                    bar_height : Int32, 
-                                    label_columns : Bool,
-                                    column_idx : Int32,
-                                    max_key_chars : Int32) : Array(String|Nil)
-      column_data = Array(String|Nil).new + (
-        (" " * padding_needed) + 
+                                     bar_height : Int32,
+                                     label_columns : Bool,
+                                     column_idx : Int32,
+                                     max_key_chars : Int32) : Array(String | Nil)
+      column_data = Array(String | Nil).new + (
+        (" " * padding_needed) +
         BAR_TOPPER +
-        ("|" * ( bar_height > 0 ? (bar_height - 1) : 0 ))).split("")
+        ("|" * (bar_height > 0 ? (bar_height - 1) : 0))
+      ).split("")
       # find a more efficient way to do that^^
       if label_columns
         key_for_idx = CrystalCliGraph.generate_key_for_index(column_idx, max_key_chars,
-                                                  CrystalCliGraph::KEY_CHARS)
+          CrystalCliGraph::KEY_CHARS)
         column_data.push key_for_idx
       end
       column_data
     end
-    
-    
-    
+
     private def generate_y_axis_label_columns(max_height : Int32, y_axis_label : String, label_columns : Bool) : Array(Column)
-      col_data = Array(String|Nil).new()
+      col_data = Array(String | Nil).new
       if y_axis_label.size >= max_height
         max_height = y_axis_label.size
         # bar height is calculated based on bar
@@ -141,7 +140,7 @@ module CrystalCliGraph
 
       y_axis_label_column = Column.new(col_data)
       y_axis_height = label_columns ? (y_axis_label_column.size - 1) : y_axis_label_column.size
-      y_axis_column_data = Array(String|Nil).new + ("|" * y_axis_height).split("")
+      y_axis_column_data = Array(String | Nil).new + ("|" * y_axis_height).split("")
       y_axis_column_data.push(" ") if label_columns
       y_axis_column = Column.new(y_axis_column_data)
       [y_axis_label_column, y_axis_column]
