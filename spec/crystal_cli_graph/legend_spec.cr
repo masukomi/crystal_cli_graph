@@ -27,6 +27,14 @@ describe CrystalCliGraph::Graph do
     rows[-1].size.should(eq(max_label_width))
   end
 
+  it "should expand to fit the max size" do
+    l = CrystalCliGraph::Legend.new(default_data(5), default_labels(5),
+                                    CrystalCliGraph::KEY_CHARS, 40)
+    output = l.generate()
+    rows = output.split("\n")
+    rows.first.size.should(eq(40))
+  end
+
   it "should wrap long labels" do
     labels = ["label-a xx", "label-b xxx", "label-c xxxx",
               "label-d is surprisingly long. Much longer that it's friends",

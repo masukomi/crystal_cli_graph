@@ -13,8 +13,6 @@ module CrystalCliGraph
     end
 
     def generate() : String
-      # that's actual max_width not what they passed in
-      # 
       max_key_chars = CrystalCliGraph.calculate_max_key_chars(data, CrystalCliGraph::KEY_CHARS)
       left_cols_size = 2 + max_key_chars + 2
       #^^ that's  "| " + max_key_chars + ": "
@@ -29,6 +27,9 @@ module CrystalCliGraph
                                 max_key_chars)
       end
       max_legend_width = rows_wo_edges.map{|r|r.size}.max
+      if max_legend_width + 4 < max_width
+        max_legend_width = max_width - 4
+      end
       response = String.build do |str|
         # now pad the right edge
         str << generate_horizantal_edge(max_legend_width + 4)
