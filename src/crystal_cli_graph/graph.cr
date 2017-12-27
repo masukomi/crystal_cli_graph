@@ -9,14 +9,10 @@ module CrystalCliGraph
     def initialize(@data : Array(Int32), options : Hash(Symbol, Bool | Int32 | String? | Array(String)))
       @fit_min = options.fetch(:fit_min, false).as(Bool)
       @max_height = options.fetch(:max_height, 15).as(Int32)
-      @x_label = options.fetch(:x_label, nil).as(String?)
       @y_axis_label = options.fetch(:y_axis_label, nil).as(String?)
       @max_width = options.fetch(:max_width, @data.size).as(Int32)
       @column_labels = options.fetch(:column_labels, Array(String).new).as(Array(String))
       # max_width WILL be exceeded if there are more data elements than it
-      # we need to take
-      # [0, 1, 15, 20, 2]
-      # and convert it into height bars.
       @columns = generate_columns_from_data(@data, @fit_min, @max_height,
         @y_axis_label, @max_width, @column_labels)
     end
