@@ -63,7 +63,7 @@ module CrystalCliGraph
     end
 
     def generate_horizantal_edge(max_width : Int32) : String
-      "+#{"-" * max_width - 2}+"
+      "+#{"-" * (max_width - 2)}+"
     end
 
     def generate_legend_row(legend : String, key : String, max_width : Int32,
