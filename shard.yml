@@ -1,0 +1,12 @@
+name: crystal_cli_graph
+version: 0.1.0
+
+authors:
+  - masukomi <masukomi@masukomi.org>
+dependencies:
+  crystal_fmt:
+    github: masukomi/crystal_fmt
+
+crystal: 0.23.1
+
+license: MIT
