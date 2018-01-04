@@ -13,6 +13,7 @@ module CrystalCliGraph
       @max_width = options.fetch(:max_width, @data.size).as(Int32)
       @column_labels = options.fetch(:column_labels, Array(String).new).as(Array(String))
       # max_width WILL be exceeded if there are more data elements than it
+      @no_legend = options.fetch(:no_legend, false).as(Bool)
       @columns = generate_columns_from_data(@data, @fit_min, @max_height,
         @y_axis_label, @max_width, @column_labels)
     end
@@ -26,21 +27,31 @@ module CrystalCliGraph
       options[:show_header] = false
       response = String.build do |str|
         str << t.format(options)
-        if !@column_labels.empty?
+        if !@column_labels.empty? && ! @no_legend
           str << "\n"
-          l = Legend.new(@data, @column_labels, CrystalCliGraph::KEY_CHARS,
-            t.width)
+          l = Legend.new(@data, 
+                         @column_labels, 
+                         get_graph_key_chars(),
+                         t.width)
           str << l.generate
         end
       end
     end
-
+    
+    def get_graph_key_chars() : Array(String)
+      if @no_legend && !  @column_labels.empty?
+        CrystalCliGraph.get_key_chars(@column_labels)
+      else
+        CrystalCliGraph.get_key_chars(nil)
+      end
+    end
     def get_padding_columns_count(data : Array(Int32), max_width : Int32, labels : Bool) : Int32
       datums = data.size
-      if datums >= max_width && datums <= CrystalCliGraph::KEY_CHARS.size
+      key_chars = get_graph_key_chars()
+      if datums >= max_width && datums <= key_chars.size
         return 0
-      elsif datums > CrystalCliGraph::KEY_CHARS.size
-        min_padding = datums / CrystalCliGraph::KEY_CHARS.size # because we'll go a-z, aa-zz, aaa-zzz, etc as needed
+      elsif datums > key_chars.size
+        min_padding = datums / key_chars.size # because we'll go a-z, aa-zz, aaa-zzz, etc as needed
         normal_padding = (max_width / datums) - 1
         normal_padding = 0 if normal_padding < 0
         min_padding > normal_padding ? min_padding : normal_padding
@@ -57,7 +68,8 @@ module CrystalCliGraph
                                    max_width : Int32,
                                    column_labels : Array(String)) : Array(Column)
       label_columns = column_labels.size > 0
-      max_key_chars = CrystalCliGraph.calculate_max_key_chars(data, CrystalCliGraph::KEY_CHARS)
+      key_chars = get_graph_key_chars()
+      max_key_chars = CrystalCliGraph.calculate_max_key_chars(data, key_chars)
 
       # we have max_height + 1 possible different bars (+1 for zero height)
       # each bar being able to have 1 step towards max_height
@@ -110,11 +122,11 @@ module CrystalCliGraph
         BAR_TOPPER +
         ("|" * (bar_height > 0 ? (bar_height - 1) : 0))
       ).split("")
-      # find a more efficient way to do that^^
+      #TODO find a more efficient way to do that^^
       if label_columns
         key_for_idx = CrystalCliGraph.generate_key_for_index(column_idx, max_key_chars,
-          CrystalCliGraph::KEY_CHARS)
-        column_data.push key_for_idx
+          get_graph_key_chars())
+        column_data.push key_for_idx + " "
       end
       column_data
     end

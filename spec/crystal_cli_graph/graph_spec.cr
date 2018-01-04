@@ -13,6 +13,47 @@ describe CrystalCliGraph::Graph do
     STDERR.puts("\nEXAMPLE GRAPH\n-------------------------------\n#{output}\n-------------------------------")
     output.nil?.should(be_false())
   end
+
+  it "should show me what it looks like with labels and no legend" do
+    opts = default_options
+    labels = "foo", "bar", "baz"
+    opts[:column_labels] = labels
+    opts[:no_legend] = true
+    # opts[:x_label] = "X Axis label"
+    data = [1,2,3]
+    g = CrystalCliGraph::Graph.new(data, opts)
+    output = g.generate
+    STDERR.puts("\nEXAMPLE GRAPH 2\n-------------------------------\n#{output}\n-------------------------------")
+    output.nil?.should(be_false())
+  end
+  it "should show me a graph with no labels and no legend" do
+    opts = default_options
+    opts[:no_legend] = true
+    data = [1,2,3]
+    g = CrystalCliGraph::Graph.new(data, opts)
+    output = g.generate
+    STDERR.puts("\nEXAMPLE GRAPH 3\n-------------------------------\n#{output}\n-------------------------------")
+    output.nil?.should(be_false())
+  end
+  it "should be as wide as its data with no labels or legend" do
+      it "should show me a graph with no labels and no legend" do
+    opts = default_options
+    opts[:no_legend] = true
+    data = [1,2,3]
+    g = CrystalCliGraph::Graph.new(data, opts)
+
+    columns = g.generate_columns_from_data(data,
+      false,                    # fit_min
+      100,                      # max_height
+      nil,                      # y_axis_label
+      1,                       # make it as small as possible
+      Array(String).new    )               # column_labels
+    columns.size.should(eq(3)) # no padding to the right of last one.
+    columns.all? { |x| x.width == 1 }.should(eq(true))
+  end
+
+  end
+
   it "should be initializable with an array of ints" do
     g = CrystalCliGraph::Graph.new(default_data, default_options)
     g.should(be_a(CrystalCliGraph::Graph))
@@ -100,7 +141,8 @@ describe CrystalCliGraph::Graph do
       16,                       # max_width
       labels    )               # column_labels
     columns.size.should(eq(53)) # no padding to the right of last one.
-    columns.all? { |x| x.width == 2 }.should(eq(true))
+    columns.all? { |x| x.width == 3 }.should(eq(true))
+    # 3 because 2 letters + 1 space of padding
   end
 
   it "should generate a graph with no label" do
