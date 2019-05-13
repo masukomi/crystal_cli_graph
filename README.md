@@ -13,15 +13,15 @@ A simple command line graphing library for Crystal. It can make graphs:
 Y|
  |
 A|
-x|                                    o
-i|                                o   |
-s|                            o   |   |
- |                        o   |   |   |
-L|                    o   |   |   |   |
-a|                o   |   |   |   |   |
-b|            o   |   |   |   |   |   |
-e|        o   |   |   |   |   |   |   |
-l|o   o   |   |   |   |   |   |   |   |
+x|                                    ▁
+i|                                ▁   █
+s|                            ▁   █   █
+ |                        ▁   █   █   █
+L|                    ▁   █   █   █   █
+a|                ▁   █   █   █   █   █
+b|            ▁   █   █   █   █   █   █
+e|        ▁   █   █   █   █   █   █   █
+l|▁   ▁   █   █   █   █   █   █   █   █
   a   b   c   d   e   f   g   h   i   j
 +-------------------------------------+
 | a: label-1 x                        |
@@ -73,12 +73,19 @@ options = Hash(Symbol, Bool | Int32 | String? | Array(String)).new
   #   If you say no_legend and don't provide labels it'll just generate a graph
   #   If you say no_legend and _do_ provide labels it'll use those under
   #   each graph line instead of generating them itself.
+  # column_body   => Optional String
+  #   Columns are made of the column_body character and topped with the
+  #   bar_topper character. See example.cr for how this can be used.
+  # bar_topper    => Optional String
+  #   the bar_topper is displayed at the top of each bar, even if there
+  #   is a zero value. Without it empty bars can be hard to see. See 
+  #   example.cr for how this can be used.
 
 data = [1, 2, 3]
 labels = ["foo", "bar", "baz"]
-opts[:column_labels] = labels
-opts[:y_axis_label] = "Y Axis Label"
-g = CrystalCliGraph::Graph.new(data, opts)
+options[:column_labels] = labels
+options[:y_axis_label] = "Y Axis Label"
+g = CrystalCliGraph::Graph.new(data, options)
 puts g.generate
 ```
 

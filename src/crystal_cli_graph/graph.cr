@@ -3,10 +3,13 @@ require "crystal_fmt"
 module CrystalCliGraph
   class Graph
     getter :data
-    BAR_TOPPER = "o"
+    BAR_TOPPER = "▁"
+    COLUMN_BODY= "█"
     @columns : Array(Column)
 
     def initialize(@data : Array(Int32), options : Hash(Symbol, Bool | Int32 | String? | Array(String)))
+      # @column_body = "x"
+      # @bar_topper = "y"
       @fit_min = options.fetch(:fit_min, false).as(Bool)
       @max_height = options.fetch(:max_height, 15).as(Int32)
       @y_axis_label = options.fetch(:y_axis_label, nil).as(String?)
@@ -14,6 +17,8 @@ module CrystalCliGraph
       @column_labels = options.fetch(:column_labels, Array(String).new).as(Array(String))
       # max_width WILL be exceeded if there are more data elements than it
       @no_legend = options.fetch(:no_legend, false).as(Bool)
+      @column_body = options.fetch(:column_body, COLUMN_BODY).as(String)
+      @bar_topper = options.fetch(:bar_topper, BAR_TOPPER).as(String)
       @columns = generate_columns_from_data(@data, @fit_min, @max_height,
         @y_axis_label, @max_width, @column_labels)
     end
@@ -119,8 +124,8 @@ module CrystalCliGraph
                                      max_key_chars : Int32) : Array(String | Nil)
       column_data = Array(String | Nil).new + (
         (" " * padding_needed) +
-        BAR_TOPPER +
-        ("|" * (bar_height > 0 ? (bar_height - 1) : 0))
+        @bar_topper +
+        (@column_body * (bar_height > 0 ? (bar_height - 1) : 0))
       ).split("")
       #TODO find a more efficient way to do that^^
       if label_columns
